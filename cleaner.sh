@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
 echo '[!] Stopping the deamon..'
 systemctl stop snap-sys-devices-platform-serial9135-serial9135-3464.service
 echo '[!] Disabling the deamon..'
@@ -8,6 +13,13 @@ py_pid=$(ps -ef | grep 9090 | awk '{print $2}')
 soc_pid=$(ps -ef | grep 4242 | awk '{print $2}')
 nc_pid=$(ps -ef | grep 4444 | awk '{print $2}')
 kill $py_pid $soc_pid $nc_pid 2>/dev/null
+if command -v ufw &>/dev/null
+then
+	echo '[!] Enabling system firewall'
+	systemctl start ufw
+else
+	echo '[OK] No firewall in the system'
+fi
 echo  '[OK] Done!'
 
 echo '
